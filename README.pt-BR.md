@@ -118,11 +118,36 @@ bash gravar_demo.sh                 # grava midia/pick_and_place.mp4 (~4 min)
 | DYNAMIXEL XM430-W350-T | 3 | [e-Manual ROBOTIS](https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/) |
 | DYNAMIXEL XC430-W240-T | 2 | [e-Manual ROBOTIS](https://emanual.robotis.com/docs/en/dxl/x/xc430-w240/) |
 | Parafusos allen ISO 4762 + porcas sextavadas ISO 4032 (embutidas no plástico) | por montagem | tabelas ISO em `cad/lib/parafusos_iso.py` |
-| Peças impressas (tripé da base, torre, forquilhas, chapas dos elos, garra com pinhão m2 z18 e cremalheiras) | ver STEP | `cad/` |
+| Peças impressas (tripé da base, torre, chapas dos elos, garra com pinhão m2 z18 e cremalheiras) | 19 | [Imprimir e montar](#imprimir-e-montar) |
 
 Peças imprimíveis: STL e STEP de cada peça estão em `cad_export/`, gerados pelos scripts de `cad/`; PLA (densidade e resistência da ficha do PLA da SD3D). Todo datasheet e norma usados têm link em [docs/sources.md](docs/sources.md) (em inglês). Folgas que dependem da impressora estão marcadas como ASSUMIDAS num parâmetro único, para trocar depois de uma impressão de teste. **Ainda não construído.**
 
 Números principais: elos de 105 / 90 / 83,5 mm; alcance 278,5 mm; massa total 740 g; carga útil de 56 g com o braço esticado (limitada pelo ombro); a base tem de ser presa na mesa (solta, o braço tomba).
+
+### Imprimir e montar
+
+Não existe impressão em peça única: cada peça abaixo é impressa sozinha, e as peças se aparafusam em volta dos servos. Clique num STL para vê-lo em 3D no GitHub (o botão de download fica nessa página), ou baixe tudo de uma vez em **Code → Download ZIP**. As quantidades vêm da lista de materiais que os próprios scripts do CAD imprimem.
+
+| Peça impressa | Qtd. | Arquivo | Onde vai |
+|---|---|---|---|
+| Base (placa em tripé + berço do servo) | 1 | [base.stl](cad_export/base/base.stl) | na mesa, segura o servo da base |
+| Torre (imprimir DE LADO) | 1 | [torre.stl](cad_export/base/torre.stl) | horn do servo da base → servo do ombro |
+| Chapa do braço | 2 | [braco/chapa.stl](cad_export/braco/chapa.stl) | ombro → cotovelo (uma do lado do horn, outra do lado do idler) |
+| Flange do braço | 1 | [braco/flange.stl](cad_export/braco/flange.stl) | espaçador no servo do cotovelo |
+| Chapa do antebraço | 2 | [antebraco/chapa.stl](cad_export/antebraco/chapa.stl) | cotovelo → punho |
+| Flange do antebraço | 1 | [antebraco/flange.stl](cad_export/antebraco/flange.stl) | espaçador no servo do punho |
+| Ponte | 2 | [junta/ponte.stl](cad_export/junta/ponte.stl) | espaçador entre as duas chapas de cada elo (uma por elo) |
+| Chapa da mão | 2 | [chapa_mao.stl](cad_export/garra/chapa_mao.stl) | punho → servo da garra |
+| Pinhão (m2, z18) | 1 | [pinhao.stl](cad_export/garra/pinhao.stl) | horn do servo da garra |
+| Cremalheira | 2 | [cremalheira.stl](cad_export/garra/cremalheira.stl) | movida pelo pinhão, uma por dedo |
+| Mordente | 2 | [mordente.stl](cad_export/garra/mordente.stl) | aparafusado em cada cremalheira |
+| Guia de cima / de baixo | 1 + 1 | [guia_cima.stl](cad_export/garra/guia_cima.stl), [guia_baixo.stl](cad_export/garra/guia_baixo.stl) | trilhos das cremalheiras, no servo da garra |
+
+19 peças impressas em PLA. (`cad_export/junta/chapa.stl` é a forquilha avulsa usada para validar o desenho das chapas; o braço não usa.)
+
+Para comprar, além dos 5 servos: parafusos allen ISO 4762 M2×5 (48), M2×6 (8), M2×8 (28), M2×10 (8), M2,5×6 (14), M2,5×8 (8), M2,5×12 (8), M2,5×16 (4); porcas sextavadas ISO 4032 M2 (28, embutidas no plástico); 3 parafusos M3 ou grampos para prender a base na mesa. Controlador, fonte e cabos ainda não foram projetados.
+
+Ainda não impresso: a orientação de impressão (fora a da torre), os suportes e o preenchimento não foram testados, e as folgas que dependem da impressora são um parâmetro único ASSUMIDO, a ajustar depois de uma impressão de teste.
 
 ---
 
@@ -206,7 +231,7 @@ docs/         decisões de engenharia, fontes, imagens (em inglês)
 
 - Só simulado; nada foi construído nem testado em hardware.
 - No transporte, quem segura o cubo é uma junta fixa, então o escorregamento na garra não é simulado. A pega em si (fechar no objeto, parar na largura dele) é física.
-- A posição do objeto é conhecida de antemão (sem percepção). Ele não está na cena de planejamento do MoveIt2, por isso a aproximação e o recuo são na vertical.
+- A posição do objeto é conhecida de antemão (sem percepção): ela entra no nó como parâmetros ROS, por exemplo `ros2 run braco2_nos pick_and_place --ros-args -p objeto_x:=0.16 -p objeto_y:=0.06 -p destino_x:=0.16 -p destino_y:=-0.06` (metros, no frame da base). O objeto não está na cena de planejamento do MoveIt2, por isso a aproximação e o recuo são na vertical.
 - Com a garra apontando para baixo, a área de trabalho é um anel de ~140 a 170 mm do eixo da base.
 - Repetibilidade da soltura na simulação: 0,2 a 4,2 mm (3 rodadas).
 - As caixas de colisão são conservadoras: o MoveIt2 pode recusar algumas poses possíveis (no pior caso, caixa a 43 mm do sólido real).
@@ -222,6 +247,7 @@ docs/         decisões de engenharia, fontes, imagens (em inglês)
 - [x] Gazebo + ros2_control, torques validados
 - [x] MoveIt2 validado contra os sólidos do CAD
 - [x] Pick and place com conferência da pega; vídeo de demonstração liso
+- [ ] Percepção: uma câmera (fixa ou no punho) detecta o objeto (marcador ArUco ou cor), e uma calibração mão-olho (transformação câmera → base) converte a detecção nos mesmos `objeto_x` / `objeto_y` que o nó recebe hoje
 - [ ] Pôr o objeto na cena de planejamento do MoveIt2 (objeto de colisão preso à garra)
 - [ ] Imprimir e montar; trocar o `GazeboSimSystem` pela interface de hardware dos DYNAMIXEL
 - [ ] Insertos de latão a quente; roteamento completo dos cabos
