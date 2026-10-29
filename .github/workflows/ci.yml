@@ -1,0 +1,38 @@
+# Builds the three ROS 2 packages and runs their tests (unit tests + ROS 2 linters)
+# on a clean ROS 2 Jazzy container, on every push and pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build and test dependencies
+        run: |
+          apt-get update
+          rosdep update --rosdistro jazzy
+          rosdep install --from-paths ros2 --ignore-src -y --rosdistro jazzy \
+            --dependency-types build --dependency-types buildtool \
+            --dependency-types build_export --dependency-types test
+
+      - name: Build
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon build --base-paths ros2 --event-handlers console_direct-
+
+      - name: Test
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon test --base-paths ros2 --event-handlers console_direct-
+          colcon test-result --verbose

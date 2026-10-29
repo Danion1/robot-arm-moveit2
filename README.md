@@ -5,6 +5,7 @@
 [![ROS 2 Jazzy](https://img.shields.io/badge/ROS_2-Jazzy-22314E?logo=ros&logoColor=white)](https://docs.ros.org/en/jazzy/)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04_(WSL2)-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com/)
+[![CI](https://github.com/Danion1/robot-arm-moveit2/actions/workflows/ci.yml/badge.svg)](https://github.com/Danion1/robot-arm-moveit2/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 🇧🇷 [Versão em português](README.pt-BR.md)
@@ -18,6 +19,8 @@
 Full video (34 s, H.264): [midia/pick_and_place.mp4](midia/pick_and_place.mp4). It was rendered by a simulated camera in lockstep with the physics, so it plays smoothly even though the simulation ran on a CPU-only WSL2 machine (1029 frames, 0 dropped).
 
 **Status:** Simulated only. CAD designed for fabrication, not printed yet. Kinematics, URDF, Gazebo torques, MoveIt2 collision checking and the pick and place are validated against the CAD (numbers below).
+
+*Developed in a private workspace (Oct 10–14, 2026); this repository is the cleaned public release. CI builds the ROS 2 packages and runs their tests on every push.*
 
 ---
 
