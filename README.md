@@ -16,7 +16,11 @@
 
 ![Pick and place in Gazebo: the arm picks a 20 mm cube, checks the grasp and places it on the other side](midia/demo.gif)
 
-Full video (34 s, H.264): [midia/pick_and_place.mp4](midia/pick_and_place.mp4). It was rendered by a simulated camera in lockstep with the physics, so it plays smoothly even though the simulation ran on a CPU-only WSL2 machine (1029 frames, 0 dropped).
+Full video (34 s):
+
+https://github.com/user-attachments/assets/49e8848e-3dfa-48d0-ab95-0e6c0371d6d8
+
+It was rendered by a simulated camera in lockstep with the physics, so it plays smoothly even though the simulation ran on a CPU-only WSL2 machine (1029 frames, 0 dropped).
 
 **Status:** Simulated only. CAD designed for fabrication, not printed yet. Kinematics, URDF, Gazebo torques, MoveIt2 collision checking and the pick and place are validated against the CAD (numbers below).
 

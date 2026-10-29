@@ -16,7 +16,11 @@
 
 ![Pick and place no Gazebo: o braço pega um cubo de 20 mm, confere a pega e o deixa do outro lado](midia/demo.gif)
 
-Vídeo completo (34 s, H.264): [midia/pick_and_place.mp4](midia/pick_and_place.mp4). Foi renderizado por uma câmera simulada sincronizada com a física, então roda liso mesmo com a simulação feita no WSL2 sem placa de vídeo (1029 quadros, nenhum perdido).
+Vídeo completo (34 s):
+
+https://github.com/user-attachments/assets/49e8848e-3dfa-48d0-ab95-0e6c0371d6d8
+
+Foi renderizado por uma câmera simulada sincronizada com a física, então roda liso mesmo com a simulação feita no WSL2 sem placa de vídeo (1029 quadros, nenhum perdido).
 
 **Status:** Só simulado. CAD projetado para fabricação, ainda não impresso. Cinemática, URDF, torques no Gazebo, checagem de colisão do MoveIt2 e o pick and place estão validados contra o CAD (números abaixo).
 
