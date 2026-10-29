@@ -5,7 +5,7 @@
 [![ROS 2 Jazzy](https://img.shields.io/badge/ROS_2-Jazzy-22314E?logo=ros&logoColor=white)](https://docs.ros.org/en/jazzy/)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04_(WSL2)-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com/)
-[![Licença](https://img.shields.io/badge/Licen%C3%A7a-Apache_2.0-blue.svg)](ros2/braco2_nos/LICENSE)
+[![Licença](https://img.shields.io/badge/Licen%C3%A7a-Apache_2.0-blue.svg)](LICENSE)
 
 🇺🇸 [English version](README.md)
 
@@ -63,7 +63,7 @@ flowchart LR
 
 ## Decisões de engenharia
 
-Lista completa, com as alternativas: [Notas/Decisões.md](Notas/Decisões.md).
+Lista completa, com as alternativas: [docs/decisions.md](docs/decisions.md) (em inglês).
 
 | Decisão | Alternativa considerada | Por quê |
 |---|---|---|
@@ -95,7 +95,7 @@ Todos os resultados vêm de scripts que rodam sem janela, num workspace temporá
 Para reproduzir (de dentro de `ros2/`):
 ```bash
 bash conferir_mover.sh              # Gazebo + mover_para_ponto (~2 min)
-bash conferir_moveit.sh             # MoveIt2 x CAD (~10 min)
+CADQUERY_PYTHON=/caminho/do/venv/bin/python bash conferir_moveit.sh   # MoveIt2 x CAD (~10 min)
 bash conferir_pega.sh               # física da pega (~3 min)
 bash conferir_pick_and_place.sh     # nó pick_and_place (~5 min)
 bash gravar_demo.sh                 # grava midia/pick_and_place.mp4 (~4 min)
@@ -105,14 +105,19 @@ bash gravar_demo.sh                 # grava midia/pick_and_place.mp4 (~4 min)
 
 ## Projetado para fabricação
 
+<p align="center">
+  <img src="docs/img/arm_cad.png" alt="Montagem do braço no CAD: tripé da base impresso, torre em L, chapas azuis dos elos em volta dos servos, garra de pinhão e cremalheira" width="49%">
+  <img src="docs/img/gripper_cad.png" alt="Detalhe da garra: o servo XC430 gira um pinhão m2 z18 entre duas cremalheiras, cada uma com um mordente" width="49%">
+</p>
+
 | Peça | Qtd. | Fonte |
 |---|---|---|
 | DYNAMIXEL XM430-W350-T | 3 | [e-Manual ROBOTIS](https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/) |
 | DYNAMIXEL XC430-W240-T | 2 | [e-Manual ROBOTIS](https://emanual.robotis.com/docs/en/dxl/x/xc430-w240/) |
-| Parafusos allen ISO 4762 + porcas sextavadas ISO 4032 (embutidas no plástico) | por montagem | tabelas ISO em `cad/parafusos_iso.py` |
+| Parafusos allen ISO 4762 + porcas sextavadas ISO 4032 (embutidas no plástico) | por montagem | tabelas ISO em `cad/lib/parafusos_iso.py` |
 | Peças impressas (tripé da base, torre, forquilhas, chapas dos elos, garra com pinhão m2 z18 e cremalheiras) | ver STEP | `cad/` |
 
-Peças imprimíveis: os scripts de `cad/` geram em `cad_export/` um STEP por peça e o da montagem completa; PLA (densidade e resistência da ficha do PLA da SD3D). Folgas que dependem da impressora estão marcadas como ASSUMIDAS num parâmetro único, para trocar depois de uma impressão de teste. **Ainda não construído.**
+Peças imprimíveis: STL e STEP de cada peça estão em `cad_export/`, gerados pelos scripts de `cad/`; PLA (densidade e resistência da ficha do PLA da SD3D). Todo datasheet e norma usados têm link em [docs/sources.md](docs/sources.md) (em inglês). Folgas que dependem da impressora estão marcadas como ASSUMIDAS num parâmetro único, para trocar depois de uma impressão de teste. **Ainda não construído.**
 
 Números principais: elos de 105 / 90 / 83,5 mm; alcance 278,5 mm; massa total 740 g; carga útil de 56 g com o braço esticado (limitada pelo ombro); a base tem de ser presa na mesa (solta, o braço tomba).
 
@@ -136,12 +141,13 @@ Números principais: elos de 105 / 90 / 83,5 mm; alcance 278,5 mm; massa total 7
 
 ### Compilar
 ```bash
-mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
-# ligue (ou copie) os três pacotes da pasta ros2/ deste projeto
-ln -s "<esta pasta>/ros2/braco2_description" "<esta pasta>/ros2/braco2_moveit_config" "<esta pasta>/ros2/braco2_nos" .
+git clone https://github.com/Danion1/robot-arm-moveit2.git
+mkdir -p ~/ros2_ws/src
+ln -s "$PWD"/robot-arm-moveit2/ros2/braco2_* ~/ros2_ws/src/
 cd ~/ros2_ws
 colcon build --symlink-install
 source install/setup.bash
+colcon test --packages-select braco2_nos && colcon test-result --verbose   # testes de unidade da cinemática
 ```
 
 ### Rodar
@@ -152,6 +158,21 @@ ros2 launch braco2_moveit_config pick_and_place.launch.py
 # Terminal 2: pega o cubo e o deixa do outro lado (ciclos:=2 traz de volta)
 ros2 run braco2_nos pick_and_place --ros-args -p ciclos:=2
 ```
+
+### Gerar o CAD de novo (opcional)
+As malhas, o URDF e a configuração do MoveIt2 já estão no repositório. Para refazê-los a partir do CAD:
+1. Baixe o STEP oficial do X430 no site da ROBOTIS para `fontes/fabricante/` (passos e SHA-256 em [docs/sources.md](docs/sources.md); o arquivo não é redistribuído aqui).
+2. Rode os scripts de dentro de `cad/`, nesta ordem (cada um confere o resultado antes de exportar):
+```bash
+cd cad
+python junta.py && python elo.py && python base.py && python garra.py   # peças → cad_export/
+python montagem.py            # montagem, colisões, cinemática direta x sólidos
+python massa.py               # massa e inércia por elo → resultados/massas.json
+python malhas_urdf.py         # malhas visual + colisão por elo
+python gerar_urdf.py          # URDF + xacro do Gazebo
+python gerar_moveit_config.py # SRDF, matriz de colisão, limites, controladores
+```
+Os STEP de montagem (`*_montagem.step`, `montagem/braco_completo.step`) só são criados na sua máquina, porque embutem o modelo do servo do fabricante.
 
 ### Conferir que está funcionando
 ```bash
@@ -165,12 +186,16 @@ ros2 topic echo --once /braco2/estado_pega   # "attached" durante o transporte
 
 ```text
 cad/          scripts CadQuery: peças, montagem, massa, malhas, geradores do URDF/MoveIt2, conferências
+cad/lib/      módulos de CAD compartilhados usados aqui (conferência de caixa, export STL, massa/inércia, parafusos ISO, dados dos servos, renders)
+cad_export/   peças imprimíveis, STL + STEP
+fontes/       script que confere o STEP do servo; arquivos do fabricante vão em fontes/fabricante/ (fora do Git)
 ros2/         pacotes ROS 2 + scripts de conferência sem janela (conferir_*.sh)
 resultados/   dados gerados usados pelas conferências (massas, caixas de colisão, respostas do MoveIt2)
 midia/        vídeo e GIF da demonstração
-previews/     imagens do CAD
-Notas/        decisões, diário de aprendizagem, pitch de entrevista
+docs/         decisões de engenharia, fontes, imagens (em inglês)
 ```
+
+`cad/lib/` é uma cópia congelada dos módulos que este projeto usa da minha biblioteca de CAD (tirada do commit `11b1f2f`, 2026-10-17). Os nomes no código e os comentários estão em português; renomeá-los quebraria pacotes e testes já validados.
 
 ---
 
@@ -208,8 +233,9 @@ Usei um assistente de IA (Claude) como par de engenharia para gerar boa parte do
 
 ## Autor
 
-**Daniel**
+**Daniel** · [GitHub](https://github.com/Danion1)
+<!-- TODO(Daniel): nome completo, LinkedIn e contato antes de publicar -->
 
 ## Licença
 
-Apache License 2.0 — ver [LICENSE](ros2/braco2_nos/LICENSE).
+Apache License 2.0 — ver [LICENSE](LICENSE).
