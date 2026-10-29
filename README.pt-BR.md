@@ -266,7 +266,7 @@ Projetei o braço e tomei as decisões de engenharia: arquitetura em série, esc
 
 ## Autor
 
-**Daniel Dos Santos Da Silva** · [GitHub](https://github.com/Danion1) · [danion.neros@gmail.com](mailto:danion.neros@gmail.com)
+**Daniel Dos Santos Da Silva** · [GitHub](https://github.com/Danion1) · [LinkedIn](https://www.linkedin.com/in/daniel-dos-santos-da-silva-32a2b23ba/) · [danion.neros@gmail.com](mailto:danion.neros@gmail.com)
 
 ## Licença
 

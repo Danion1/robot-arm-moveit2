@@ -266,7 +266,7 @@ I designed the arm and made the engineering decisions: serial architecture, serv
 
 ## Author
 
-**Daniel Dos Santos Da Silva** · [GitHub](https://github.com/Danion1) · [danion.neros@gmail.com](mailto:danion.neros@gmail.com)
+**Daniel Dos Santos Da Silva** · [GitHub](https://github.com/Danion1) · [LinkedIn](https://www.linkedin.com/in/daniel-dos-santos-da-silva-32a2b23ba/) · [danion.neros@gmail.com](mailto:danion.neros@gmail.com)
 
 ## License
 
