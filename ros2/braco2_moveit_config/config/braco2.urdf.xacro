@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- ARQUIVO GERADO por cad/gerar_moveit_config.py: não editar à mão.
+     O braço (braco.urdf, sem mudança) + o bloco ros2_control com hardware
+     FALSO. É o robot_description que o MoveIt2 carrega no teste sem física. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="braco2">
+  <xacro:arg name="initial_positions_file" default="initial_positions.yaml"/>
+
+  <xacro:include filename="$(find braco2_description)/urdf/braco.urdf"/>
+  <xacro:include filename="braco2.ros2_control.xacro"/>
+
+  <xacro:braco2_ros2_control name="HardwareFalso" initial_positions_file="$(arg initial_positions_file)"/>
+</robot>

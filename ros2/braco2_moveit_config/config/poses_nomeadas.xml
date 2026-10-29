@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Poses nomeadas do MoveIt2. O cad/gerar_moveit_config.py copia cada
+     <group_state> para o braco2.srdf e confere grupo, juntas, limites e colisão.
+     Unidades do SRDF: junta revoluta em RADIANOS, prismática em METROS.
+     Braço: as POSES_TRABALHO do cad/montagem.py (lá em graus).
+     Nenhuma pose no limite exato de junta: no Gazebo o erro de seguimento passa do
+     limite e o MoveIt2 recusa planejar dali (por isso o "pronto" usa -85° no cotovelo). -->
+<poses>
+  <group_state name="zero" group="braco">
+    <joint name="junta_base" value="0"/>
+    <joint name="junta_ombro" value="0"/>
+    <joint name="junta_cotovelo" value="0"/>
+    <joint name="junta_punho" value="0"/>
+  </group_state>
+
+  <!-- 0 / 60 / -85 / -65°: espera, garra apontando para a mesa -->
+  <group_state name="pronto" group="braco">
+    <joint name="junta_base" value="0"/>
+    <joint name="junta_ombro" value="1.0472"/>
+    <joint name="junta_cotovelo" value="-1.48353"/>
+    <joint name="junta_punho" value="-1.13446"/>
+  </group_state>
+
+  <!-- 20 / 40 / -70 / -60°: TCP a ~27 mm da mesa, a 158 mm do eixo -->
+  <group_state name="pegar_na_mesa" group="braco">
+    <joint name="junta_base" value="0.34907"/>
+    <joint name="junta_ombro" value="0.69813"/>
+    <joint name="junta_cotovelo" value="-1.22173"/>
+    <joint name="junta_punho" value="-1.0472"/>
+  </group_state>
+
+  <!-- -30 / 70 / -40 / -20° -->
+  <group_state name="alto" group="braco">
+    <joint name="junta_base" value="-0.5236"/>
+    <joint name="junta_ombro" value="1.22173"/>
+    <joint name="junta_cotovelo" value="-0.69813"/>
+    <joint name="junta_punho" value="-0.34907"/>
+  </group_state>
+
+  <!-- Garra: junta_garra = curso de UM mordente (0 a 0,02 m); abertura total = 2x.
+       0,02 m = 40 mm entre mordentes (ga.ABERTURA), 0 = fechada. -->
+  <group_state name="garra_aberta" group="garra">
+    <joint name="junta_garra" value="0.02"/>
+  </group_state>
+
+  <group_state name="garra_fechada" group="garra">
+    <joint name="junta_garra" value="0"/>
+  </group_state>
+</poses>

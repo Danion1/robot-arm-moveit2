@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+.pytest_cache/
+
+# colcon
+build/
+install/
+log/
+
+# Manufacturer files are not redistributed: download them as described in docs/sources.md
+fontes/fabricante/
+
+# Assembly STEPs embed the manufacturer's servo model: regenerate them locally (see README, "CAD")
+cad_export/*/*_montagem.step
+cad_export/montagem/
+
+# Render previews written by the CAD scripts (README images live in docs/img/)
+previews/

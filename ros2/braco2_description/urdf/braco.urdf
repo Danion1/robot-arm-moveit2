@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+<!-- ARQUIVO GERADO por cad/gerar_urdf.py: não editar à mão; mude o CAD ou os
+     dados e gere de novo. O trecho world + base_link foi escrito primeiro à
+     mão pelo Daniel (commit no Git) e é conferido pelo gerador. -->
+<robot name="braco2">
+
+  <!-- Pose zero: braço esticado na horizontal, apontando para +X.
+       +X frente, +Y esquerda, +Z cima (REP-103); base_link na mesa, sob o eixo da base.
+       Malhas no frame da PRÓPRIA junta (origin 0 0 0) e em mm (scale 0.001).
+       Visual = peças detalhadas; colisão = uma <box> por peça (decisão D1; caixas_colisao.json). -->
+
+  <material name="cinza"><color rgba="0.55 0.55 0.58 1.0"/></material>
+  <material name="azul_escuro"><color rgba="0.30 0.30 0.75 1.0"/></material>
+  <material name="azul"><color rgba="0.20 0.45 0.80 1.0"/></material>
+  <material name="verde"><color rgba="0.20 0.65 0.40 1.0"/></material>
+  <material name="laranja"><color rgba="0.95 0.55 0.15 1.0"/></material>
+  <material name="vermelho"><color rgba="0.85 0.20 0.20 1.0"/></material>
+
+  <!-- world: link vazio que segura a base (o braço é fixado na mesa). O KDL
+       não aceita inércia no link raiz, e o MoveIt2 precisa de um frame fixo. -->
+  <link name="world"/>
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ===================== base_link ===================== -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="cinza"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.01875 0 0.003" rpy="0 0 0"/>
+      <geometry><box size="0.1365 0.153904 0.008"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.012 0 0.0225" rpy="0 0 0"/>
+      <geometry><box size="0.0485 0.0405 0.035"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.012 0 0.02935" rpy="0 0 0"/>
+      <geometry><box size="0.0485 0.0305 0.0447"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.009115 0.000204 0.019000" rpy="0 0 0"/>
+      <mass value="0.163529"/>
+      <inertia ixx="1.05389732e-04" ixy="3.36721098e-07" ixz="1.32190372e-05" iyy="1.22373715e-04" iyz="-2.72612884e-07" izz="1.59760563e-04"/>
+    </inertial>
+  </link>
+
+  <!-- ===================== link1 ===================== -->
+  <link name="link1">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/link1.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="azul_escuro"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0205 0 0.02825" rpy="0 0 0"/>
+      <geometry><box size="0.0715 0.0305 0.0585"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.012 0.00235 0.04225" rpy="0 0 0"/>
+      <geometry><box size="0.0485 0.0447 0.0305"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.023308 0.001280 0.032799" rpy="0 0 0"/>
+      <mass value="0.146220"/>
+      <inertia ixx="5.17310159e-05" ixy="-3.32454185e-06" ixz="-2.27066681e-06" iyy="8.97761574e-05" iyz="-1.76275354e-06" izz="6.22354889e-05"/>
+    </inertial>
+  </link>
+
+  <!-- ===================== link2 ===================== -->
+  <link name="link2">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/link2.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="azul"/>
+    </visual>
+    <collision>
+      <origin xyz="0.02775 0.021 0" rpy="0 0 0"/>
+      <geometry><box size="0.086 0.006 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.02775 -0.021 0" rpy="0 0 0"/>
+      <geometry><box size="0.086 0.006 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.02125 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.0095 0.04 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.06225 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.017 0.04 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.093 0.00235 0" rpy="0 0 0"/>
+      <geometry><box size="0.0485 0.0447 0.0305"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.067687 0.001286 -0.000229" rpy="0 0 0"/>
+      <mass value="0.145509"/>
+      <inertia ixx="3.49445009e-05" ixy="-5.94484335e-06" ixz="6.04589824e-07" iyy="1.54922917e-04" iyz="-3.73676032e-08" izz="1.71239124e-04"/>
+    </inertial>
+  </link>
+
+  <!-- ===================== link3 ===================== -->
+  <link name="link3">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/link3.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="verde"/>
+    </visual>
+    <collision>
+      <origin xyz="0.02025 0.021 0" rpy="0 0 0"/>
+      <geometry><box size="0.071 0.006 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.02025 -0.021 0" rpy="0 0 0"/>
+      <geometry><box size="0.071 0.006 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.02125 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.0095 0.04 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.04725 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.017 0.04 0.0305"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.078 0.00235 0" rpy="0 0 0"/>
+      <geometry><box size="0.0485 0.0447 0.0305"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.053964 0.001193 -0.000213" rpy="0 0 0"/>
+      <mass value="0.124269"/>
+      <inertia ixx="3.00560734e-05" ixy="-4.52300481e-06" ixz="4.45460597e-07" iyy="9.97806231e-05" iyz="-2.71767370e-08" izz="1.13955943e-04"/>
+    </inertial>
+  </link>
+
+  <!-- ===================== link4 ===================== -->
+  <link name="link4">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/link4.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="laranja"/>
+    </visual>
+    <collision>
+      <origin xyz="0.016375 0.018625 -0.009375" rpy="0 0 0"/>
+      <geometry><box size="0.06325 0.01075 0.04925"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.016375 -0.018625 -0.009375" rpy="0 0 0"/>
+      <geometry><box size="0.06325 0.01075 0.04925"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.03935 0 -0.012" rpy="0 0 0"/>
+      <geometry><box size="0.0447 0.0305 0.0485"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0526 0.007038 0.021625" rpy="0 0 0"/>
+      <geometry><box size="0.0292 0.077925 0.02275"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0466 -0.007038 -0.032875" rpy="0 0 0"/>
+      <geometry><box size="0.0412 0.077925 0.01375"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.06 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.01 0.041975 0.041865"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.038535 -0.000205 -0.011007" rpy="0 0 0"/>
+      <mass value="0.129153"/>
+      <inertia ixx="6.09036574e-05" ixy="-3.62067470e-08" ixz="-1.29674768e-06" iyy="7.06973307e-05" iyz="-1.93013849e-06" izz="5.84227981e-05"/>
+    </inertial>
+  </link>
+
+  <!-- ===================== mordente_cima ===================== -->
+  <link name="mordente_cima">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/mordente_cima.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="vermelho"/>
+    </visual>
+    <collision>
+      <origin xyz="0.06025 -0.003212 0.02225" rpy="0 0 0"/>
+      <geometry><box size="0.0105 0.054425 0.0145"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0815 0.011 0.00725" rpy="0 0 0"/>
+      <geometry><box size="0.036 0.024 0.0405"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.070182 0.003014 0.011064" rpy="0 0 0"/>
+      <mass value="0.015549"/>
+      <inertia ixx="4.49258831e-06" ixy="-2.40560988e-07" ixz="1.42936863e-06" iyy="4.46525180e-06" iyz="5.06167374e-07" izz="3.97863197e-06"/>
+    </inertial>
+  </link>
+
+  <!-- ===================== mordente_baixo ===================== -->
+  <link name="mordente_baixo">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://braco2_description/meshes/mordente_baixo.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="vermelho"/>
+    </visual>
+    <collision>
+      <origin xyz="0.06025 0.003212 -0.02225" rpy="0 0 0"/>
+      <geometry><box size="0.0105 0.054425 0.0145"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0815 -0.011 -0.00725" rpy="0 0 0"/>
+      <geometry><box size="0.036 0.024 0.0405"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.070182 -0.003014 -0.011064" rpy="0 0 0"/>
+      <mass value="0.015549"/>
+      <inertia ixx="4.49258831e-06" ixy="2.40560988e-07" ixz="-1.42936863e-06" iyy="4.46525180e-06" iyz="5.06167374e-07" izz="3.97863197e-06"/>
+    </inertial>
+  </link>
+
+  <!-- base: gira em torno de Z. Servo XM430-W350-T: effort = stall a 12 V (4.1 N.m),
+       velocity = 46 rev/min sem carga. Limites: -180 a +180 graus. -->
+  <joint name="junta_base" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0.046" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="4.1" velocity="4.817"/>
+  </joint>
+
+  <!-- ombro: positivo levanta o braço. Servo XM430-W350-T: effort = stall a 12 V (4.1 N.m),
+       velocity = 46 rev/min sem carga. Limites: -54 a +90 graus. -->
+  <joint name="junta_ombro" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin xyz="0 0 0.04225" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-0.94247" upper="1.57079" effort="4.1" velocity="4.817"/>
+  </joint>
+
+  <!-- cotovelo: positivo levanta o antebraço. Servo XM430-W350-T: effort = stall a 12 V (4.1 N.m),
+       velocity = 46 rev/min sem carga. Limites: -90 a +90 graus. -->
+  <joint name="junta_cotovelo" type="revolute">
+    <parent link="link2"/>
+    <child link="link3"/>
+    <origin xyz="0.105 0 0" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-1.57079" upper="1.57079" effort="4.1" velocity="4.817"/>
+  </joint>
+
+  <!-- punho: positivo levanta a mão. Servo XC430-W240-T: effort = stall a 12 V (1.9 N.m),
+       velocity = 70 rev/min sem carga. Limites: -90 a +90 graus. -->
+  <joint name="junta_punho" type="revolute">
+    <parent link="link3"/>
+    <child link="link4"/>
+    <origin xyz="0.09 0 0" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-1.57079" upper="1.57079" effort="1.9" velocity="7.330"/>
+  </joint>
+
+  <!-- Garra: pinhão m2 z18 (R = 18 mm) no XC430-W240-T. Cada mordente anda
+       0 a 20 mm (0 = fechada); effort = stall / (2 R) = 52.8 N,
+       velocity = ω·R. O de baixo copia o de cima (mimic): no robô real é o mesmo
+       pinhão, então só junta_garra é comandada. -->
+  <joint name="junta_garra" type="prismatic">
+    <parent link="link4"/>
+    <child link="mordente_cima"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="0.02" effort="52.8" velocity="0.1319"/>
+  </joint>
+
+  <joint name="junta_garra_espelho" type="prismatic">
+    <parent link="link4"/>
+    <child link="mordente_baixo"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0" upper="0.02" effort="52.8" velocity="0.1319"/>
+    <mimic joint="junta_garra" multiplier="1" offset="0"/>
+  </joint>
+
+  <!-- TCP: frame sem geometria entre os dedos, no meio do comprimento deles.
+       É o ponto que a cinemática inversa posiciona (L4 = 83.5 mm do punho). -->
+  <link name="tcp"/>
+  <joint name="junta_tcp" type="fixed">
+    <parent link="link4"/>
+    <child link="tcp"/>
+    <origin xyz="0.0835 0 0" rpy="0 0 0"/>
+  </joint>
+
+</robot>

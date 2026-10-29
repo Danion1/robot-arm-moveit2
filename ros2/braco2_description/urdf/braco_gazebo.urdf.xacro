@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!-- ARQUIVO GERADO por cad/gerar_urdf.py: não editar à mão. -->
+<robot name="braco2" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Caminho do .yaml dos controladores. O padrão aponta para o pacote
+       instalado; a verificação do gerador passa outro caminho. -->
+  <xacro:arg name="controladores" default="$(find braco2_description)/config/controladores.yaml"/>
+
+  <!-- A descrição do braço, sem mudança (mesma pasta). -->
+  <xacro:include filename="braco.urdf"/>
+
+  <!-- ros2_control: diz QUAIS juntas o controller_manager comanda e COMO.
+       hardware = o simulador (GazeboSimSystem); no braço real, aqui entraria
+       o driver dos DYNAMIXEL, e o resto (controladores, MoveIt2) não muda.
+       Comando de POSIÇÃO: é o modo padrão dos dois servos, e o XC430 nem tem
+       modo de torque (e-Manual ROBOTIS; Decisões, 2026-10-14).
+       Estado: posição, velocidade e ESFORÇO, para medir o torque que cada
+       junta faz contra a gravidade e comparar com o stall. -->
+  <ros2_control name="braco2_gazebo" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="junta_base">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="junta_ombro">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="junta_cotovelo">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="junta_punho">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="junta_garra">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <!-- Mimic: copia junta_garra (tag <mimic> do braco.urdf); só se lê, não se comanda. -->
+    <joint name="junta_garra_espelho">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- Plugin que liga o Gazebo ao ros2_control: sobe o controller_manager
+       dentro do simulador e carrega o .yaml dos controladores. -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(arg controladores)</parameters>
+    </plugin>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,26 @@
+# ARQUIVO GERADO por cad/gerar_moveit_config.py: não editar à mão.
+# Diz ao MoveIt2 para quais controladores do ros2_control mandar a trajetória
+# planejada. Nomes e juntas lidos do controladores.yaml (Daniel).
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - braco_controller
+    - garra_controller
+
+  braco_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - junta_base
+      - junta_ombro
+      - junta_cotovelo
+      - junta_punho
+
+  garra_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - junta_garra

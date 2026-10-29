@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!-- ARQUIVO GERADO por cad/gerar_moveit_config.py: não editar à mão.
+     Hardware FALSO (mock_components): devolve como estado exatamente o que foi
+     comandado, sem física. Serve para configurar e conferir o MoveIt2 sozinho
+     (Decisões, 2026-10-14: hardware falso primeiro, Gazebo depois). No Gazebo
+     este bloco é o do braco_gazebo.urdf.xacro; no braço real, o driver dos
+     DYNAMIXEL. Mesmas juntas e interfaces nos três. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="braco2_ros2_control" params="name initial_positions_file">
+    <xacro:property name="initial_positions"
+                    value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
+    <ros2_control name="${name}" type="system">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+      </hardware>
+      <joint name="junta_base">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['junta_base']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="junta_ombro">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['junta_ombro']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="junta_cotovelo">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['junta_cotovelo']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="junta_punho">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['junta_punho']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="junta_garra">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['junta_garra']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <!-- Mimic: copia a mestra (tag <mimic> do braco.urdf); só se lê. -->
+      <joint name="junta_garra_espelho">
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+  </xacro:macro>
+</robot>

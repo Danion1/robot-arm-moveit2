@@ -1,0 +1,37 @@
+# ARQUIVO GERADO por cad/gerar_moveit_config.py: não editar à mão.
+# Limites usados pelo MoveIt2 para dar TEMPO à trajetória. Os limites de
+# POSIÇÃO vêm do URDF e não se repetem aqui.
+# max_velocity = velocity do URDF (datasheet ROBOTIS, sem carga, 12 V).
+# O fator 0.5 deixa o planejador usar no máximo metade: sob carga o servo
+# não chega na velocidade sem carga.
+# max_acceleration ASSUMIDO (o datasheet não publica): juntas 6.28 rad/s²
+# (90° em 1 s, perfil triangular); garra 0.0838 m/s² (20 mm em 1 s).
+default_velocity_scaling_factor: 0.5
+default_acceleration_scaling_factor: 0.5
+
+joint_limits:
+  junta_base:
+    has_velocity_limits: true
+    max_velocity: 4.817
+    has_acceleration_limits: true
+    max_acceleration: 6.28
+  junta_ombro:
+    has_velocity_limits: true
+    max_velocity: 4.817
+    has_acceleration_limits: true
+    max_acceleration: 6.28
+  junta_cotovelo:
+    has_velocity_limits: true
+    max_velocity: 4.817
+    has_acceleration_limits: true
+    max_acceleration: 6.28
+  junta_punho:
+    has_velocity_limits: true
+    max_velocity: 7.33
+    has_acceleration_limits: true
+    max_acceleration: 6.28
+  junta_garra:
+    has_velocity_limits: true
+    max_velocity: 0.1319
+    has_acceleration_limits: true
+    max_acceleration: 0.0838

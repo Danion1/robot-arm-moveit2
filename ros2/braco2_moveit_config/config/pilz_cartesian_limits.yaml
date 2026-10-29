@@ -1,0 +1,11 @@
+# ARQUIVO GERADO por cad/gerar_moveit_config.py: não editar à mão.
+# Limites da PONTA para o planejador Pilz (linhas retas e arcos). O
+# MoveItConfigsBuilder exige o arquivo mesmo sem usar o Pilz.
+# Derivados dos limites das juntas com o braço esticado (278.5 mm):
+#   velocidade: 0.5 x 4.817 rad/s x 0.2785 m
+#   aceleração: 6.28 rad/s² (ASSUMIDO) x 0.2785 m
+cartesian_limits:
+  max_trans_vel: 0.671
+  max_trans_acc: 1.749
+  max_trans_dec: -1.749
+  max_rot_vel: 2.409

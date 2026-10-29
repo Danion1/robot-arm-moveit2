@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!-- Braço do Gazebo (braco_gazebo.urdf.xacro, gerado) + a PEGA do pick and place
+     (decisão C, docs/decisions.md, 2026-10-14). Escrito à mão: não é gerado.
+
+     DetachableJoint (gz-sim 8): cria uma junta FIXA entre a mão (link4) e o
+     objeto quando chega uma mensagem em /braco2/prender, e a desfaz com
+     /braco2/soltar. O estado ("attached"/"detached") sai em /braco2/estado_pega.
+     Os três são tópicos do GAZEBO; o launch do pick and place faz a ponte com o ROS 2
+     (std_msgs/msg/Empty).
+
+     O que isto NÃO simula: depois de preso, o objeto não escorrega nem gira na
+     garra (o atrito do transporte). Quem decide prender é o nó, depois de
+     CONFERIR a pega pela física (garra parada na largura do objeto). -->
+<robot name="braco2" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="controladores" default="$(find braco2_description)/config/controladores.yaml"/>
+  <xacro:include filename="braco_gazebo.urdf.xacro"/>
+
+  <gazebo>
+    <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <parent_link>link4</parent_link>
+      <child_model>objeto</child_model>
+      <child_link>link</child_link>
+      <attach_topic>/braco2/prender</attach_topic>
+      <detach_topic>/braco2/soltar</detach_topic>
+      <output_topic>/braco2/estado_pega</output_topic>
+    </plugin>
+  </gazebo>
+
+</robot>

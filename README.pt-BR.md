@@ -1,0 +1,215 @@
+# Braço robótico de 4 juntas com MoveIt2
+
+> Braço robótico serial de 4 juntas com garra paralela de pinhão e cremalheira, projetado para impressão 3D em PLA com servos DYNAMIXEL, e simulado de ponta a ponta no ROS 2: CAD → URDF → Gazebo + ros2_control → MoveIt2 → pick and place.
+
+[![ROS 2 Jazzy](https://img.shields.io/badge/ROS_2-Jazzy-22314E?logo=ros&logoColor=white)](https://docs.ros.org/en/jazzy/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04_(WSL2)-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com/)
+[![Licença](https://img.shields.io/badge/Licen%C3%A7a-Apache_2.0-blue.svg)](ros2/braco2_nos/LICENSE)
+
+🇺🇸 [English version](README.md)
+
+---
+
+## Demonstração
+
+![Pick and place no Gazebo: o braço pega um cubo de 20 mm, confere a pega e o deixa do outro lado](midia/demo.gif)
+
+Vídeo completo (34 s, H.264): [midia/pick_and_place.mp4](midia/pick_and_place.mp4). Foi renderizado por uma câmera simulada sincronizada com a física, então roda liso mesmo com a simulação feita no WSL2 sem placa de vídeo (1029 quadros, nenhum perdido).
+
+**Status:** Só simulado. CAD projetado para fabricação, ainda não impresso. Cinemática, URDF, torques no Gazebo, checagem de colisão do MoveIt2 e o pick and place estão validados contra o CAD (números abaixo).
+
+---
+
+## Visão geral
+
+O objetivo era um modelo só, que servisse para a simulação e para a fabricação. O braço é projetado de forma paramétrica em Python (CadQuery): os parafusos seguem as tabelas ISO, a furação dos servos vem dos desenhos da ROBOTIS e a espessura das chapas sai de um cálculo de tensão no torque de stall do servo. O mesmo script gera as malhas, massas e inércias do URDF. Cada etapa tem uma conferência automática contra uma referência independente antes de qualquer exportação.
+
+Pontos principais:
+- **CAD paramétrico em CadQuery**: um modelo gera as peças imprimíveis (STEP/STL) e as malhas da simulação.
+- **Cinemática inversa analítica** (braço planar + giro da base, lei dos cossenos), validada contra os sólidos do CAD e no Gazebo.
+- **Gazebo + ros2_control** com comando de posição (o modo padrão dos servos reais); o torque de gravidade simulado bate com a conta pelas massas do CAD em menos de 0,15 %.
+- **Colisão do MoveIt2** conferida contra os sólidos do CAD: nenhuma pose que o MoveIt2 libera colide no CAD (600 poses sorteadas).
+- **Pick and place** com pega conferida: a garra tem de parar no objeto antes do alvo, senão o nó aborta sem prender.
+
+---
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+    N["pick_and_place<br/>(IK + sequência)"] -- "/move_action<br/>(alvos em juntas)" --> MG["move_group<br/>(MoveIt2)"]
+    MG -- "/braco_controller/follow_joint_trajectory" --> BC["braco_controller<br/>(JTC, 4 juntas)"]
+    N -- "/garra_controller/joint_trajectory" --> GC["garra_controller<br/>(JTC, garra)"]
+    N -- "/braco2/prender · /braco2/soltar" --> DJ["DetachableJoint<br/>(Gazebo)"]
+    BC --> GZ["Gazebo Sim 8<br/>gz_ros2_control"]
+    GC --> GZ
+    GZ --> JSB["joint_state_broadcaster"]
+    JSB -- "/joint_states" --> N
+    JSB -- "/joint_states" --> MG
+```
+
+| Componente | Papel | Escrito por mim / configurado |
+|---|---|---|
+| `cad/*.py` (CadQuery) | peças, montagem, massa/inércia, malhas, geradores do URDF e do MoveIt2, todos com conferências | escrito (com ajuda de IA) |
+| `braco2_description` | URDF, malhas, mundos do Gazebo, launch | URDF gerado; `controladores.yaml` e `gazebo.launch.py` escritos à mão |
+| `braco2_nos/cinematica.py` | cinemática direta e inversa, 15 testes | escrito |
+| `braco2_nos/mover_para_ponto.py` | nó: alvo cartesiano → IK → trajetória das juntas | escrito à mão |
+| `braco2_nos/pick_and_place.py` | nó: pick and place completo pelo MoveIt2, com conferência da pega | escrito (com ajuda de IA) |
+| `braco2_moveit_config` | SRDF, matriz de colisão, limites, controladores | gerado por script e validado |
+| MoveIt2, ros2_control, Gazebo | planejamento, controle, física | configurado |
+
+---
+
+## Decisões de engenharia
+
+Lista completa, com as alternativas: [Notas/Decisões.md](Notas/Decisões.md).
+
+| Decisão | Alternativa considerada | Por quê |
+|---|---|---|
+| Braço em série | Paralelogramo | O laço fechado é mal descrito no URDF e complica o MoveIt2; aceitei mais torque no ombro em troca de software mais simples |
+| XM430-W350 (base, ombro, cotovelo), XC430-W240 (punho, garra) | XM540 (mais pesado), XW430 (datasheet contraditório) | Escolhidos pelo cálculo de torque com as massas do CAD |
+| Comando de posição | Comando de esforço | É o modo padrão dos servos reais, e o XC430 não tem modo de torque: simular o que o hardware não faz não transferiria |
+| IK analítica, MoveIt2 com alvos em juntas | Solver KDL do MoveIt2 | Com 4 juntas o KDL só resolve posição (a orientação sai qualquer uma) |
+| Colisão = uma caixa por peça, margem de 1 mm | Malha detalhada / fecho convexo | A malha é lenta; o fecho convexo fecha o vão da garra e das forquilhas |
+| Pega híbrida: a física fecha, a pega é conferida, depois uma junta fixa segura | Só atrito / sempre prender / teletransporte | Pega só por atrito é instável no Gazebo; prender sempre esconderia uma pega errada |
+| Motor de física Bullet-Featherstone no mundo do pick and place | DART (padrão do Gazebo) | O DART não suporta a junta mimic da garra, e só um dedo andava |
+
+---
+
+## Validação
+
+Todos os resultados vêm de scripts que rodam sem janela, num workspace temporário e numa rede ROS isolada.
+
+| O quê | Método | Resultado |
+|---|---|---|
+| Cinemática direta | Fórmula à mão x cadeia de sólidos do CAD (30 poses) e x cadeia do URDF | erro máximo 1,1e-13 mm |
+| Cinemática inversa | 15 testes + IK de poses tiradas dos sólidos do CAD (30 poses) | testes passam; erro máximo 4,4e-13° |
+| URDF | Conferências do gerador: massas = CAD, total 740 g, limites, `check_urdf`, caixas de colisão = caixas do CAD | 7 conferências passam |
+| Gazebo + ros2_control | 5 alvos cartesianos pelo `mover_para_ponto` | erro da TF 0,000 mm; torque das juntas x gravidade do CAD < 0,15 %; alvo inalcançável recusado |
+| Colisão do MoveIt2 | 600 poses sorteadas (com e sem mesa), MoveIt2 x interseção dos sólidos do CAD | concordam em 565; 0 perigosas (MoveIt2 diz livre, CAD colide); 35 conservadoras |
+| Trajetórias do MoveIt2 | 10 movimentos planejados e executados, interpolados de 1° em 1° contra o CAD | todos livres de colisão, dentro dos limites e da velocidade, terminando no alvo; desvio encontrado onde a reta nas juntas bateria na mesa |
+| Física da pega | Gazebo: mimic, pega no vazio, aproximação, fechamento, subida, soltura | a garra para em 10,7-11,0 mm por dedo num cubo de 20 mm (contato esperado em 11,0); sobe 40 mm junto com a mão |
+| Nó de pick and place | Ida e volta (2 pegas) + pega num ponto vazio | objeto de volta a menos de 5 mm; pega no vazio reprovada sem prender |
+
+Para reproduzir (de dentro de `ros2/`):
+```bash
+bash conferir_mover.sh              # Gazebo + mover_para_ponto (~2 min)
+bash conferir_moveit.sh             # MoveIt2 x CAD (~10 min)
+bash conferir_pega.sh               # física da pega (~3 min)
+bash conferir_pick_and_place.sh     # nó pick_and_place (~5 min)
+bash gravar_demo.sh                 # grava midia/pick_and_place.mp4 (~4 min)
+```
+
+---
+
+## Projetado para fabricação
+
+| Peça | Qtd. | Fonte |
+|---|---|---|
+| DYNAMIXEL XM430-W350-T | 3 | [e-Manual ROBOTIS](https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/) |
+| DYNAMIXEL XC430-W240-T | 2 | [e-Manual ROBOTIS](https://emanual.robotis.com/docs/en/dxl/x/xc430-w240/) |
+| Parafusos allen ISO 4762 + porcas sextavadas ISO 4032 (embutidas no plástico) | por montagem | tabelas ISO em `cad/parafusos_iso.py` |
+| Peças impressas (tripé da base, torre, forquilhas, chapas dos elos, garra com pinhão m2 z18 e cremalheiras) | ver STEP | `cad/` |
+
+Peças imprimíveis: os scripts de `cad/` geram em `cad_export/` um STEP por peça e o da montagem completa; PLA (densidade e resistência da ficha do PLA da SD3D). Folgas que dependem da impressora estão marcadas como ASSUMIDAS num parâmetro único, para trocar depois de uma impressão de teste. **Ainda não construído.**
+
+Números principais: elos de 105 / 90 / 83,5 mm; alcance 278,5 mm; massa total 740 g; carga útil de 56 g com o braço esticado (limitada pelo ombro); a base tem de ser presa na mesa (solta, o braço tomba).
+
+---
+
+## Tecnologias
+
+- **Robótica:** ROS 2 Jazzy, ros2_control, Gazebo Sim 8 (gz_ros2_control), MoveIt2, RViz2
+- **CAD:** CadQuery (Python, OpenCASCADE)
+- **Linguagens:** Python 3.12, URDF/Xacro, SRDF, SDF, YAML
+- **Ambiente:** Ubuntu 24.04 no WSL2 (WSLg para as janelas)
+
+---
+
+## Como rodar
+
+### Pré-requisitos
+- ROS 2 Jazzy (`source /opt/ros/jazzy/setup.bash`)
+- `sudo apt install ros-jazzy-moveit ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-ros2-controllers`
+- Para gerar o CAD de novo: um venv Python com CadQuery (`pip install cadquery`)
+
+### Compilar
+```bash
+mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
+# ligue (ou copie) os três pacotes da pasta ros2/ deste projeto
+ln -s "<esta pasta>/ros2/braco2_description" "<esta pasta>/ros2/braco2_moveit_config" "<esta pasta>/ros2/braco2_nos" .
+cd ~/ros2_ws
+colcon build --symlink-install
+source install/setup.bash
+```
+
+### Rodar
+```bash
+# Terminal 1: Gazebo + MoveIt2 + RViz2 com o cubo na mesa
+ros2 launch braco2_moveit_config pick_and_place.launch.py
+
+# Terminal 2: pega o cubo e o deixa do outro lado (ciclos:=2 traz de volta)
+ros2 run braco2_nos pick_and_place --ros-args -p ciclos:=2
+```
+
+### Conferir que está funcionando
+```bash
+ros2 control list_controllers          # joint_state_broadcaster, braco_controller, garra_controller: active
+ros2 topic echo --once /braco2/estado_pega   # "attached" durante o transporte
+```
+
+---
+
+## Estrutura do repositório
+
+```text
+cad/          scripts CadQuery: peças, montagem, massa, malhas, geradores do URDF/MoveIt2, conferências
+ros2/         pacotes ROS 2 + scripts de conferência sem janela (conferir_*.sh)
+resultados/   dados gerados usados pelas conferências (massas, caixas de colisão, respostas do MoveIt2)
+midia/        vídeo e GIF da demonstração
+previews/     imagens do CAD
+Notas/        decisões, diário de aprendizagem, pitch de entrevista
+```
+
+---
+
+## Limitações
+
+- Só simulado; nada foi construído nem testado em hardware.
+- No transporte, quem segura o cubo é uma junta fixa, então o escorregamento na garra não é simulado. A pega em si (fechar no objeto, parar na largura dele) é física.
+- A posição do objeto é conhecida de antemão (sem percepção). Ele não está na cena de planejamento do MoveIt2, por isso a aproximação e o recuo são na vertical.
+- Com a garra apontando para baixo, a área de trabalho é um anel de ~140 a 170 mm do eixo da base.
+- Repetibilidade da soltura na simulação: 0,2 a 4,2 mm (3 rodadas).
+- As caixas de colisão são conservadoras: o MoveIt2 pode recusar algumas poses possíveis (no pior caso, caixa a 43 mm do sólido real).
+- Os limites de ±90° do cotovelo e do punho são a faixa verificada no CAD, não os batentes do hardware. Os limites de aceleração e o atrito do cubo são assumidos (sem valor de datasheet).
+
+---
+
+## Próximos passos
+
+- [x] CAD paramétrico, pronto para fabricar, com ferragens ISO e furação de datasheet
+- [x] Massa/inércia pelos sólidos; URDF gerado
+- [x] IK analítica, validada contra o CAD
+- [x] Gazebo + ros2_control, torques validados
+- [x] MoveIt2 validado contra os sólidos do CAD
+- [x] Pick and place com conferência da pega; vídeo de demonstração liso
+- [ ] Pôr o objeto na cena de planejamento do MoveIt2 (objeto de colisão preso à garra)
+- [ ] Imprimir e montar; trocar o `GazeboSimSystem` pela interface de hardware dos DYNAMIXEL
+- [ ] Insertos de latão a quente; roteamento completo dos cabos
+
+---
+
+## Como usei IA
+
+Usei um assistente de IA (Claude) como par de engenharia para gerar boa parte dos scripts, inclusive o nó de pick and place. As decisões de projeto (arquitetura em série, escolha dos servos, tipo de garra, controle por posição, a pega híbrida, validar o MoveIt2 com hardware falso antes do Gazebo) foram minhas e sei justificá-las. Escrevi à mão parte do URDF, a configuração dos controladores, o launch do Gazebo e o primeiro nó, para aprender os formatos. Todo resultado é conferido automaticamente contra referências independentes antes de ser aceito.
+
+---
+
+## Autor
+
+**Daniel**
+
+## Licença
+
+Apache License 2.0 — ver [LICENSE](ros2/braco2_nos/LICENSE).

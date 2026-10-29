@@ -1,0 +1,8 @@
+# ARQUIVO GERADO por cad/gerar_moveit_config.py: pose em que o hardware
+# falso começa (braço esticado, garra fechada).
+initial_positions:
+  junta_base: 0.0
+  junta_ombro: 0.0
+  junta_cotovelo: 0.0
+  junta_punho: 0.0
+  junta_garra: 0.0

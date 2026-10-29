@@ -1,0 +1,9 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: braco2_description
+    relative_path: urdf/braco.urdf
+  srdf:
+    relative_path: config/braco2.srdf
+  package_settings:
+    author_name: Daniel
+    author_email: danion.neros@gmail.com
