@@ -256,7 +256,7 @@ docs/         engineering decisions, sources, images
 
 ## How AI was used
 
-I used an AI assistant (Claude) as an engineering pair to generate much of the scripting, including the pick and place node. The design decisions (serial architecture, servo selection, gripper type, position control, the hybrid grasp, validating MoveIt2 with fake hardware before Gazebo) were mine and I can justify them. I wrote part of the URDF, the controller configuration, the Gazebo launch file and the first node by hand to learn the formats. Every result is checked automatically against independent references before it is accepted.
+I designed the arm and made the engineering decisions: serial architecture, servo selection by torque calculation, gripper type, position control, the hybrid grasp, and validating MoveIt2 on fake hardware before Gazebo. I wrote the controller configuration, the Gazebo launch file, parts of the URDF and the first ROS 2 node (`mover_para_ponto`) by hand. For the larger scripts (the CAD generators and the pick and place node) I used an AI assistant (Claude) as a pair programmer, working from my specifications. Nothing was accepted on trust: every result is checked automatically against independent references (the CAD solids, hand calculations, datasheets).
 
 ---
 

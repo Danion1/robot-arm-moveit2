@@ -256,7 +256,7 @@ docs/         decisões de engenharia, fontes, imagens (em inglês)
 
 ## Como usei IA
 
-Usei um assistente de IA (Claude) como par de engenharia para gerar boa parte dos scripts, inclusive o nó de pick and place. As decisões de projeto (arquitetura em série, escolha dos servos, tipo de garra, controle por posição, a pega híbrida, validar o MoveIt2 com hardware falso antes do Gazebo) foram minhas e sei justificá-las. Escrevi à mão parte do URDF, a configuração dos controladores, o launch do Gazebo e o primeiro nó, para aprender os formatos. Todo resultado é conferido automaticamente contra referências independentes antes de ser aceito.
+Projetei o braço e tomei as decisões de engenharia: arquitetura em série, escolha dos servos pelo cálculo de torque, tipo de garra, controle por posição, a pega híbrida e validar o MoveIt2 com hardware falso antes do Gazebo. Escrevi à mão a configuração dos controladores, o launch do Gazebo, partes do URDF e o primeiro nó ROS 2 (`mover_para_ponto`). Nos scripts maiores (os geradores do CAD e o nó de pick and place) usei um assistente de IA (Claude) como par de programação, trabalhando a partir das minhas especificações. Nada foi aceito por confiança: todo resultado é conferido automaticamente contra referências independentes (os sólidos do CAD, contas à mão, datasheets).
 
 ---
 
