@@ -1,6 +1,6 @@
 """
-pick_and_place.py
-=================
+Pick and place do braço do Projeto 2 no Gazebo, pelo MoveIt2.
+
 Pega o objeto num ponto da mesa e o deixa em outro, no Gazebo (pega = decisão C,
 docs/decisions.md, 2026-10-14). Escrito com assistência de IA (Claude),
 seguindo a sequência que o ros2/conferir_pega.py provou.
@@ -27,10 +27,11 @@ Sai com código 0 se tudo deu certo e 1 se alguma etapa falhou.
 import math
 import sys
 
-import rclpy
+from braco2_nos import cinematica as cin
 from builtin_interfaces.msg import Duration
 from moveit_msgs.action import MoveGroup
 from moveit_msgs.msg import Constraints, JointConstraint, MoveItErrorCodes
+import rclpy
 from rclpy.action import ActionClient
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
@@ -39,15 +40,16 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Empty
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
-from braco2_nos import cinematica as cin
-
 JUNTAS = list(cin.NOMES)
 PRONTO = (0.0, 1.0472, -1.48353, -1.13446)   # pose nomeada "pronto" (0 / 60 / -85 / -65°)
 GARRA_ABERTA = 0.020                          # m por dedo (limite do URDF)
-MARGEM = 0.001        # caixa de colisão do dedo 1 mm maior (malhas_urdf.MARGEM): contato 1 mm antes
-APERTO = 0.001        # alvo 1 mm além do contato: ~3 N (fechar até 0 aperta 28 N e espreme o objeto)
-BLOQUEIO = 0.0003    # m: a garra tem de PARAR pelo menos isso antes do alvo (com o cubo para 0,7-1 mm
-                     # antes; no vazio chega no alvo, ±0,05 mm). Medido em 2026-10-14.
+# Caixa de colisão do dedo 1 mm maior (malhas_urdf.MARGEM): contato 1 mm antes.
+MARGEM = 0.001
+# Alvo 1 mm além do contato: ~3 N (fechar até 0 aperta 28 N e espreme o objeto).
+APERTO = 0.001
+# m: a garra tem de PARAR pelo menos isso antes do alvo (com o cubo para 0,7-1 mm
+# antes; no vazio chega no alvo, ±0,05 mm). Medido em 2026-10-14.
+BLOQUEIO = 0.0003
 FOLGA_ABERTA = 0.0005  # m: parar além do contato esperado = objeto maior ou garra travada
 BAIXO = math.radians(-90)  # garra apontando para a mesa
 
@@ -70,9 +72,12 @@ class PickAndPlace(Node):
         self.declare_parameter('destino_y', -0.060)
         self.declare_parameter('largura_objeto', 0.020)
         self.declare_parameter('z_acima', 0.060)     # TCP na aproximação e no recuo
-        self.declare_parameter('z_pegar', 0.020)     # TCP ao fechar (pontas dos dedos a ~5 mm da mesa)
-        self.declare_parameter('z_soltar', 0.022)    # 2 mm acima: apoiado e preso, o objeto pula ao soltar
-        self.declare_parameter('velocidade', 0.5)    # fração da velocidade máxima (juntas e aceleração)
+        # TCP ao fechar (pontas dos dedos a ~5 mm da mesa)
+        self.declare_parameter('z_pegar', 0.020)
+        # 2 mm acima: apoiado e preso, o objeto pula ao soltar
+        self.declare_parameter('z_soltar', 0.022)
+        # fração da velocidade máxima (juntas e aceleração)
+        self.declare_parameter('velocidade', 0.5)
         self.declare_parameter('ciclos', 1)          # 2+ = leva e traz de volta (vídeo)
         p = {n: self.get_parameter(n).get_parameter_value().double_value for n in (
             'objeto_x', 'objeto_y', 'destino_x', 'destino_y', 'largura_objeto',
@@ -83,7 +88,8 @@ class PickAndPlace(Node):
 
         # 2. Comunicação
         self.mover = ActionClient(self, MoveGroup, 'move_action')
-        self.pub_garra = self.create_publisher(JointTrajectory, '/garra_controller/joint_trajectory', 10)
+        self.pub_garra = self.create_publisher(
+            JointTrajectory, '/garra_controller/joint_trajectory', 10)
         self.pub_prender = self.create_publisher(Empty, '/braco2/prender', 10)
         self.pub_soltar = self.create_publisher(Empty, '/braco2/soltar', 10)
         self.juntas = {}
@@ -110,7 +116,8 @@ class PickAndPlace(Node):
     def juntas_para(self, x, y, z):
         solucoes = cin.solucoes(x, y, z, BAIXO)
         if not solucoes:
-            raise Falha(f'ponto inalcançável com a garra para baixo: ({x:.3f}, {y:.3f}, {z:.3f}) m')
+            raise Falha(
+                f'ponto inalcançável com a garra para baixo: ({x:.3f}, {y:.3f}, {z:.3f}) m')
         return solucoes[0]            # cotovelo para cima
 
     # --------------------------------------------------------------- ações
@@ -161,7 +168,8 @@ class PickAndPlace(Node):
         alvo = self.contato - APERTO
         parou = self.garra(alvo, espera=2.5)
         self.get_logger().info(
-            f'garra parou em {parou * 1000:.2f} mm por dedo (contato esperado {self.contato * 1000:.1f}, '
+            f'garra parou em {parou * 1000:.2f} mm por dedo '
+            f'(contato esperado {self.contato * 1000:.1f}, '
             f'alvo {alvo * 1000:.1f} mm)')
         if parou < alvo + BLOQUEIO or parou > self.contato + FOLGA_ABERTA:
             motivo = 'fechou no vazio' if parou < alvo + BLOQUEIO else 'parou cedo demais'

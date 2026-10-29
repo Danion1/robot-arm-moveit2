@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-test_cinematica.py
-==================
+Testes da cinemática do braço do Projeto 2.
+
 Testes da cinemática (unittest; o pytest do `colcon test` também roda).
 
     cd ros2/braco2_nos && python3 -m pytest test/test_cinematica.py -v
@@ -26,7 +26,7 @@ import xml.etree.ElementTree as ET
 from braco2_nos import cinematica as cin
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
-URDF = os.path.join(AQUI, "..", "..", "braco2_description", "urdf", "braco.urdf")
+URDF = os.path.join(AQUI, '..', '..', 'braco2_description', 'urdf', 'braco.urdf')
 rad = math.radians
 TOL = 1e-9
 Z0 = 0.08825          # altura do ombro
@@ -75,13 +75,13 @@ class C_Inversa(unittest.TestCase):
 
     def test_exemplo_a_mao_garra_para_baixo(self):
         # r = 150, z = 50, phi = -90°: conta do Daniel, cotovelo para cima.
-        q = cin.ik(0.150, 0.0, 0.050, rad(-90), cotovelo="cima")
+        q = cin.ik(0.150, 0.0, 0.050, rad(-90), cotovelo='cima')
         for o, e in zip(q, (0.0, 50.17, -73.33, -66.85)):
             self.assertAlmostEqual(math.degrees(o), e, delta=0.01)
 
     def test_exemplo_a_mao_so_uma_solucao_executavel(self):
         # Cotovelo para baixo pede punho a -146,73°: fora do limite de ±90°.
-        baixo = cin.ik(0.150, 0.0, 0.050, rad(-90), cotovelo="baixo")
+        baixo = cin.ik(0.150, 0.0, 0.050, rad(-90), cotovelo='baixo')
         self.assertAlmostEqual(math.degrees(baixo[3]), -146.73, delta=0.01)
         sols = cin.solucoes(0.150, 0.0, 0.050, rad(-90))
         self.assertEqual(len(sols), 1)
@@ -90,7 +90,7 @@ class C_Inversa(unittest.TestCase):
     def test_exercicio_a_mao_cotovelo_passa_do_limite(self):
         # r = 180, z = 88,25, phi = 0: o triângulo fecha (q3 = ±121,28°),
         # mas o cotovelo passa de ±90°. Alcançável no papel, não no braço.
-        q = cin.ik(0.180, 0.0, Z0, 0.0, cotovelo="cima")
+        q = cin.ik(0.180, 0.0, Z0, 0.0, cotovelo='cima')
         self.assertAlmostEqual(math.degrees(q[2]), -121.28, delta=0.01)
         self.assertAlmostEqual(math.degrees(q[1]), 52.85, delta=0.01)
         self.assertEqual(cin.solucoes(0.180, 0.0, Z0, 0.0), [])
@@ -115,7 +115,7 @@ class C_Inversa(unittest.TestCase):
             if cin.fk_analitica(0.0, *q[1:])[0] <= 1e-6:
                 continue                  # TCP atrás do eixo da base: fora do método
             x, y, z, phi = cin.fk_analitica(*q)
-            ramo = "cima" if q[2] < 0 else "baixo"
+            ramo = 'cima' if q[2] < 0 else 'baixo'
             q_r = cin.ik(x, y, z, phi, cotovelo=ramo)
             for a, b in zip(cin.fk_analitica(*q_r)[:3], (x, y, z)):
                 self.assertAlmostEqual(a, b, delta=1e-9)      # 1 nanômetro
@@ -128,47 +128,48 @@ class C_Inversa(unittest.TestCase):
 
 def juntas_do_urdf():
     raiz = ET.parse(URDF).getroot()
-    return {j.get("name"): j for j in raiz.findall("joint")}
+    return {j.get('name'): j for j in raiz.findall('joint')}
 
 
 def fk_pelo_urdf(angulos):
     """Posição do TCP lendo origem, rpy e eixo de cada junta do arquivo URDF."""
-    juntas = {j.find("child").get("link"): j for j in juntas_do_urdf().values()}
-    cadeia, link = [], "tcp"
+    juntas = {j.find('child').get('link'): j for j in juntas_do_urdf().values()}
+    cadeia, link = [], 'tcp'
     while link in juntas:
         cadeia.append(juntas[link])
-        link = juntas[link].find("parent").get("link")
+        link = juntas[link].find('parent').get('link')
     t = cin.mat_identidade()
     for j in reversed(cadeia):
-        xyz = [float(v) for v in j.find("origin").get("xyz").split()]
-        rpy = [float(v) for v in j.find("origin").get("rpy").split()]
+        xyz = [float(v) for v in j.find('origin').get('xyz').split()]
+        rpy = [float(v) for v in j.find('origin').get('rpy').split()]
         t = cin.mat_mul(t, cin.mat_translacao(*xyz))
         for eixo, ang in (((0, 0, 1), rpy[2]), ((0, 1, 0), rpy[1]), ((1, 0, 0), rpy[0])):
             t = cin.mat_mul(t, cin.mat_rotacao(eixo, ang))
-        if j.get("type") == "revolute":
-            eixo = [float(v) for v in j.find("axis").get("xyz").split()]
-            t = cin.mat_mul(t, cin.mat_rotacao(eixo, angulos[j.get("name")]))
+        if j.get('type') == 'revolute':
+            eixo = [float(v) for v in j.find('axis').get('xyz').split()]
+            t = cin.mat_mul(t, cin.mat_rotacao(eixo, angulos[j.get('name')]))
     return (t[0][3], t[1][3], t[2][3])
 
 
-@unittest.skipUnless(os.path.isfile(URDF), "URDF não encontrado ao lado deste pacote")
+@unittest.skipUnless(os.path.isfile(URDF), 'URDF não encontrado ao lado deste pacote')
 class D_IgualAoUrdf(unittest.TestCase):
 
     def test_geometria_igual_ao_urdf(self):
         j = juntas_do_urdf()
+
         def origem(nome):
-            return [float(v) for v in j[nome].find("origin").get("xyz").split()]
-        self.assertEqual(origem("junta_base"), [0.0, 0.0, cin.Z_JUNTA1])
-        self.assertEqual(origem("junta_ombro"), [0.0, 0.0, cin.Z_OMBRO_NO_LINK1])
-        self.assertEqual(origem("junta_cotovelo"), [cin.L2, 0.0, 0.0])
-        self.assertEqual(origem("junta_punho"), [cin.L3, 0.0, 0.0])
-        self.assertEqual(origem("junta_tcp"), [cin.L4, 0.0, 0.0])
+            return [float(v) for v in j[nome].find('origin').get('xyz').split()]
+        self.assertEqual(origem('junta_base'), [0.0, 0.0, cin.Z_JUNTA1])
+        self.assertEqual(origem('junta_ombro'), [0.0, 0.0, cin.Z_OMBRO_NO_LINK1])
+        self.assertEqual(origem('junta_cotovelo'), [cin.L2, 0.0, 0.0])
+        self.assertEqual(origem('junta_punho'), [cin.L3, 0.0, 0.0])
+        self.assertEqual(origem('junta_tcp'), [cin.L4, 0.0, 0.0])
 
     def test_limites_iguais_ao_urdf(self):
         j = juntas_do_urdf()
         for nome, (lo, hi) in cin.LIMITES.items():
-            lim = j[nome].find("limit")
-            self.assertEqual((float(lim.get("lower")), float(lim.get("upper"))), (lo, hi), nome)
+            lim = j[nome].find('limit')
+            self.assertEqual((float(lim.get('lower')), float(lim.get('upper'))), (lo, hi), nome)
 
     def test_fk_igual_a_cadeia_do_urdf(self):
         rng = random.Random(3)
@@ -179,5 +180,5 @@ class D_IgualAoUrdf(unittest.TestCase):
                 self.assertAlmostEqual(a, b, delta=1e-9)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

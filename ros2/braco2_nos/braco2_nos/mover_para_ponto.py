@@ -1,14 +1,15 @@
 import math
+
+from braco2_nos import cinematica as cin
 from builtin_interfaces.msg import Duration
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from rclpy.executors import ExternalShutdownException
-
-from braco2_nos import cinematica as cin
 
 JUNTAS = ['junta_base', 'junta_ombro', 'junta_cotovelo', 'junta_punho']
+
 
 class MoverParaPonto(Node):
     def __init__(self):
@@ -101,7 +102,7 @@ class MoverParaPonto(Node):
 
         # Limitar o log para 1 vez por segundo (Throttle de 1,0s)
         agora = self.get_clock().now()
-        if(agora - self.ultimo_log_tempo).nanoseconds < 1e9:
+        if (agora - self.ultimo_log_tempo).nanoseconds < 1e9:
             return
         self.ultimo_log_tempo = agora
 
@@ -116,11 +117,12 @@ class MoverParaPonto(Node):
         esforco_ombro = esforcos.get('junta_ombro', 0.0)
 
         self.get_logger().info(
-            f'\n--- Telemetria /joint_states ---\n'
+            '\n--- Telemetria /joint_states ---\n'
             + '\n'.join(linhas_log)
             + f'\nEsforço no Ombro: {esforco_ombro:.4f} N·m\n'
             + '-' * 32
         )
+
 
 def main():
     rclpy.init()
@@ -132,6 +134,7 @@ def main():
     finally:
         no.destroy_node()
         rclpy.try_shutdown()
+
 
 if __name__ == '__main__':
     main()

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-cinematica.py
-=============
+Cinemática direta e inversa do braço do Projeto 2.
+
 Cinemática direta e inversa do braço do Projeto 2, em Python puro (só o
 módulo `math`): o nó de pick and place importa daqui, sem CadQuery.
 
@@ -41,10 +41,10 @@ L4 = 0.0835                  # punho -> TCP (meio dos dedos)
 # Limites (rad), os MESMOS números do URDF, já arredondados para dentro
 # (valor cheio fica fora do limite e é rejeitado).
 LIMITES = {
-    "junta_base": (-3.14159, 3.14159),
-    "junta_ombro": (-0.94247, 1.57079),       # -54° (bate na torre) a +90°
-    "junta_cotovelo": (-1.57079, 1.57079),    # faixa VERIFICADA no CAD, não o batente
-    "junta_punho": (-1.57079, 1.57079),       # idem
+    'junta_base': (-3.14159, 3.14159),
+    'junta_ombro': (-0.94247, 1.57079),       # -54° (bate na torre) a +90°
+    'junta_cotovelo': (-1.57079, 1.57079),    # faixa VERIFICADA no CAD, não o batente
+    'junta_punho': (-1.57079, 1.57079),       # idem
 }
 NOMES = tuple(LIMITES)
 
@@ -54,7 +54,8 @@ NOMES = tuple(LIMITES)
 # =============================================================================
 
 def fk_analitica(q1, q2, q3, q4):
-    """Ângulos das juntas -> (x, y, z, phi) do TCP.
+    """
+    Ângulos das juntas -> (x, y, z, phi) do TCP.
 
     No plano do braço cada elo aponta na soma dos ângulos até ele; `r` é o
     quanto o TCP se afasta do eixo da base, e a base só gira esse plano.
@@ -101,40 +102,42 @@ def mat_rotacao(eixo, angulo):
 
 # A cadeia, igual às juntas do URDF: (link filho, origem no pai, eixo).
 CADEIA = [
-    ("link1", (0.0, 0.0, Z_JUNTA1), (0.0, 0.0, 1.0)),
-    ("link2", (0.0, 0.0, Z_OMBRO_NO_LINK1), (0.0, -1.0, 0.0)),
-    ("link3", (L2, 0.0, 0.0), (0.0, -1.0, 0.0)),
-    ("link4", (L3, 0.0, 0.0), (0.0, -1.0, 0.0)),
+    ('link1', (0.0, 0.0, Z_JUNTA1), (0.0, 0.0, 1.0)),
+    ('link2', (0.0, 0.0, Z_OMBRO_NO_LINK1), (0.0, -1.0, 0.0)),
+    ('link3', (L2, 0.0, 0.0), (0.0, -1.0, 0.0)),
+    ('link4', (L3, 0.0, 0.0), (0.0, -1.0, 0.0)),
 ]
 TCP_NO_LINK4 = (L4, 0.0, 0.0)
 
 
 def fk_matrizes(q1, q2, q3, q4):
-    """Ângulos -> {nome do link: matriz 4x4 no mundo}, mais o "tcp".
+    """
+    Ângulos -> {nome do link: matriz 4x4 no mundo}, mais o "tcp".
 
     Cada junta contribui com a translação até a origem dela (fixa) e depois
     a rotação em torno do eixo dela (o ângulo da junta).
     """
-    resultado = {"base_link": mat_identidade()}
+    resultado = {'base_link': mat_identidade()}
     t = mat_identidade()
     for (nome, origem, eixo), q in zip(CADEIA, (q1, q2, q3, q4)):
         t = mat_mul(mat_mul(t, mat_translacao(*origem)), mat_rotacao(eixo, q))
         resultado[nome] = t
-    resultado["tcp"] = mat_mul(t, mat_translacao(*TCP_NO_LINK4))
+    resultado['tcp'] = mat_mul(t, mat_translacao(*TCP_NO_LINK4))
     return resultado
 
 
 def pose_do_tcp(matrizes):
-    """(x, y, z, phi) a partir da matriz do TCP, para comparar com fk_analitica.
+    """
+    (x, y, z, phi) a partir da matriz do TCP, para comparar com fk_analitica.
 
     phi sai do eixo X da mão (primeira coluna da rotação): componente para
     cima contra componente para fora. O sinal de "para fora" vem da projeção
     na direção radial da base (a mão pode passar da vertical).
     """
-    m = matrizes["tcp"]
+    m = matrizes['tcp']
     x, y, z = m[0][3], m[1][3], m[2][3]
     horizontal = math.hypot(m[0][0], m[1][0])
-    link1 = matrizes["link1"]
+    link1 = matrizes['link1']
     radial = m[0][0] * link1[0][0] + m[1][0] * link1[1][0]
     phi = math.atan2(m[2][0], math.copysign(horizontal, radial))
     return (x, y, z, phi)
@@ -148,8 +151,9 @@ class ForaDoAlcance(ValueError):
     """O ponto pedido não pode ser atingido com a inclinação pedida."""
 
 
-def ik(x, y, z, phi, cotovelo="cima"):
-    """(x, y, z, phi) do TCP -> (q1, q2, q3, q4), SEM conferir limites.
+def ik(x, y, z, phi, cotovelo='cima'):
+    """
+    (x, y, z, phi) do TCP -> (q1, q2, q3, q4), SEM conferir limites.
 
     Os passos são os da conta à mão (2026-10-14):
       1. q1: a base aponta para o alvo, atan2(y, x).
@@ -175,14 +179,14 @@ def ik(x, y, z, phi, cotovelo="cima"):
     cos_q3 = (d2 - L2 * L2 - L3 * L3) / (2.0 * L2 * L3)
     if cos_q3 > 1.0 + 1e-9 or cos_q3 < -1.0 - 1e-9:
         raise ForaDoAlcance(
-            f"punho a {math.sqrt(d2) * 1000:.1f} mm do ombro; o triângulo só fecha de "
-            f"{abs(L2 - L3) * 1000:.1f} a {(L2 + L3) * 1000:.1f} mm")
+            f'punho a {math.sqrt(d2) * 1000:.1f} mm do ombro; o triângulo só fecha de '
+            f'{abs(L2 - L3) * 1000:.1f} a {(L2 + L3) * 1000:.1f} mm')
     cos_q3 = max(-1.0, min(1.0, cos_q3))
 
     q3 = math.acos(cos_q3)
-    if cotovelo == "cima":
+    if cotovelo == 'cima':
         q3 = -q3          # positivo levanta; cotovelo para cima = antebraço descendo
-    elif cotovelo != "baixo":
+    elif cotovelo != 'baixo':
         raise ValueError("cotovelo deve ser 'cima' ou 'baixo'")
 
     q2 = math.atan2(z_punho, r_punho) - math.atan2(L3 * math.sin(q3), L2 + L3 * math.cos(q3))
@@ -195,13 +199,14 @@ def dentro_dos_limites(q):
 
 
 def solucoes(x, y, z, phi):
-    """Todas as soluções que o URDF aceita, cotovelo para cima primeiro.
+    """
+    Todas as soluções que o URDF aceita, cotovelo para cima primeiro.
 
     Lista vazia = inalcançável com essa inclinação (fora do triângulo OU
     fora dos limites). Quem chama escolhe entre as que sobraram.
     """
     validas = []
-    for ramo in ("cima", "baixo"):
+    for ramo in ('cima', 'baixo'):
         try:
             q = ik(x, y, z, phi, cotovelo=ramo)
         except ForaDoAlcance:
@@ -220,13 +225,13 @@ def normaliza(angulo):
     return angulo
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # O exemplo feito à mão em 2026-10-14: r = 150, z = 50, garra para baixo.
     graus = math.degrees
     alvo = (0.150, 0.0, 0.050, math.radians(-90))
-    print("Alvo (x, y, z, phi):", alvo)
-    for ramo in ("cima", "baixo"):
+    print('Alvo (x, y, z, phi):', alvo)
+    for ramo in ('cima', 'baixo'):
         q = ik(*alvo, cotovelo=ramo)
-        ok = "dentro" if dentro_dos_limites(q) else "FORA"
-        print(f"  cotovelo {ramo:5}: {tuple(round(graus(v), 2) for v in q)}  ({ok} dos limites)")
-    print("  executáveis:", [tuple(round(graus(v), 2) for v in q) for q in solucoes(*alvo)])
+        ok = 'dentro' if dentro_dos_limites(q) else 'FORA'
+        print(f'  cotovelo {ramo:5}: {tuple(round(graus(v), 2) for v in q)}  ({ok} dos limites)')
+    print('  executáveis:', [tuple(round(graus(v), 2) for v in q) for q in solucoes(*alvo)])

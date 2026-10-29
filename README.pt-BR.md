@@ -233,8 +233,7 @@ Usei um assistente de IA (Claude) como par de engenharia para gerar boa parte do
 
 ## Autor
 
-**Daniel** · [GitHub](https://github.com/Danion1)
-<!-- TODO(Daniel): nome completo, LinkedIn e contato antes de publicar -->
+**Daniel Dos Santos Da Silva** · [GitHub](https://github.com/Danion1) · [danion.neros@gmail.com](mailto:danion.neros@gmail.com)
 
 ## Licença
 

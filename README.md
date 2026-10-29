@@ -233,8 +233,7 @@ I used an AI assistant (Claude) as an engineering pair to generate much of the s
 
 ## Author
 
-**Daniel** · [GitHub](https://github.com/Danion1)
-<!-- TODO(Daniel): full name, LinkedIn and contact before publishing -->
+**Daniel Dos Santos Da Silva** · [GitHub](https://github.com/Danion1) · [danion.neros@gmail.com](mailto:danion.neros@gmail.com)
 
 ## License
 
